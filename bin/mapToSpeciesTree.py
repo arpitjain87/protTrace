@@ -10,6 +10,8 @@ import colourizeTree
 def main(protId, config_file):
 	global prot_config, prot_id, taxonset, nexus_file
 
+	rootDir = os.getcwd()
+
 	prot_id = protId
 	prot_config = configure.setParams(config_file)
 	species_id = prot_config.species
@@ -26,6 +28,8 @@ def main(protId, config_file):
 
 	generateNexusFile()
 	colourizeTree.main(nexus_file, prot_config.hamstr_oma_tree_map, prot_id, prot_config.species_tree, prot_config.plot_figtree, prot_config.species_MaxLikMatrix, species_id)
+
+	os.chdir(rootDir)
 
 def generateNexusFile():
 	print '##### Generating nexus file #####'

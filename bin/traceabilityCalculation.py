@@ -8,6 +8,8 @@ import dendropy
 ### Using the final hash table, decay rate is calculated using decay script
 
 def main(prot_id, config_file):
+
+	rootDir = os.getcwd()
  
 	prot_config = configure.setParams(config_file)
 
@@ -73,6 +75,7 @@ def main(prot_id, config_file):
 	print '##### Calculating decay parameters #####'
 	decayParams(prot_config.R, prot_id, prot_config.decay_script)
 
+	os.chdir(rootDir)
 
 def decayParams(r, prot_id, decay_script):
 	command = '%s --vanilla --file=%s --args decay_summary_%s.txt' %(r, decay_script, prot_id)

@@ -11,6 +11,9 @@ import subprocess
 import random
 
 def Preprocessing(prot_id, querySeq, config_file):
+
+	rootDir = os.getcwd()
+
 	print 'Prot_id: ', prot_id
 	# Creating instance of class configure
 	# Saves the information provided by the program configuration file
@@ -149,7 +152,8 @@ def Preprocessing(prot_id, querySeq, config_file):
 			writeIndel.close()
 
 		prepareXML(xml_file, prot_config.pfam_database, prot_config.hmmfetch, prot_config.aa_substitution_matrix, indel, p, scaling_factor, prot_config.simulation_tree, prot_id, hmm_file, REvolver_output_dir)
-
+	
+	os.chdir(rootDir)
 
 # HaMStROneSeq run
 def run_hamstrOneSeq(hamstr, orth_file, map_file, prot_id, formatdb, blastp, proteome, delTemp):

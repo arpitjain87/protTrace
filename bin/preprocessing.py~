@@ -129,7 +129,7 @@ def Preprocessing(prot_id, querySeq, config_file):
 	if prot_config.calculate_scaling_factor:
 		print '##### Tree reconstruction and scaling factor calculation #####'
 		startProcessTime = time.time()
-		treeReconstruction.main(prot_config.tree_reconstruction, prot_config.msa, prot_config.clustalw, prot_config.degapping, orth_file, prot_config.aa_substitution_matrix, prot_id, prot_config.treePuzzle, prot_config.parameters_treePuzzle, prot_config.hamstr_oma_tree_map, prot_config.species_MaxLikMatrix, scale_file, tree_file, delTemp, prot_config.default_scaling_factor, cache_dir)
+		treeReconstruction.main(prot_config.tree_reconstruction, prot_config.msa, prot_config.clustalw, prot_config.degapping, orth_file, prot_config.aa_substitution_matrix, prot_id, prot_config.treePuzzle, prot_config.parameters_treePuzzle, prot_config.hamstr_oma_tree_map, prot_config.species_MaxLikMatrix, scale_file, tree_file, delTemp, prot_config.default_scaling_factor)
 		print '#####\tTIME TAKEN: %s mins\tRAxML#####' %((time.time() - startProcessTime) / 60)
 
 	# Performs MSA on the orthologs sequences

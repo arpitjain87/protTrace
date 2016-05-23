@@ -68,7 +68,7 @@ def colourize(speciesName, nexusTreeFile):
 		fnew.write(tree[i] + '\n')
 	for i in range(startTaxa, stopTaxa):
 		tempSpecies = tree[i].split()[-1]
-		#print tempSpecies
+		print tempSpecies
 		if not tempSpecies == speciesName:
 			try:
 				'''if tempSpecies == "crypa_4119":

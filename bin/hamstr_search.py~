@@ -121,8 +121,7 @@ def write_output():
 			oma_name = ''
 			for j in range(len(s3)-1):
 				if s3[j].split()[0] == hamstr_name:
-					#oma_name = s3[j].split()[3] + s2[0].split('|')[3][:5]
-					oma_name = s3[j].split()[3]
+					oma_name = s3[j].split()[3] + s2[0].split('|')[3][:5]
 					break
 			#print oma_name[:5]
 			if not oma_name[:5] in co and hamstr_name in present_species:

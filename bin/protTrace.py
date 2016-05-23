@@ -14,17 +14,14 @@ import preprocessing
 import traceabilityCalculation
 import mapToSpeciesTree
 import time
-#import modules
 
 def main(argv):
 	
-	id_list = ''
-	fasta_list = ''
-	config_file = ''
-	# Set the get options method to read the inputs
+	id_list, fasta_list, config_file = '', '', ''
+
+	# Setting the get options method to read the input arguments
 	try:
 		opts, args = getopt.getopt(argv, "f:i:c:h", ["fasta=", "id=", "config=", "help"])
-		#print opts
 	except getopt.GetoptError:
 		print 'Invalid arguments:\nUsage:\tprotTrace.py -i <omaIdsFile> | -f <fastaSeqsFile> -c <configFile> [-help]'
 		sys.exit(2)
@@ -44,10 +41,13 @@ def main(argv):
 			sys.exit(2)
 	
 	config_file = os.path.abspath(config_file)
+	
+	# Calling the class in configure.py module and setting the tool parameters
 	proteinParams = configure.setParams(config_file)
 	
 	if id_list != '':
 		for ids in open(id_list):
+			print '##### Running for OMA id: %s #####' %ids.split()[0]
 			if proteinParams.preprocessing:	
 				preprocessing.Preprocessing(ids.split('\n')[0], 'None', config_file)
 			if proteinParams.traceability_calculation:
@@ -57,8 +57,8 @@ def main(argv):
 	elif fasta_list != '':
 		with open(fasta_list) as fa:
 			for seqs in fa:
-				if seqs[0] == '>':
-					print seqs
+				if '>' in seqs:
+					print '##### Running for fasta id: %s #####' %seqs[1:-1]
 					inputId = seqs.split('\n')[0][1:]
 					querySeq = fa.next()
 

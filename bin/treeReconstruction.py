@@ -153,24 +153,34 @@ def scalingFactorMax():
 				#	maxDistSpecies = float(speciesMaxFile[rowIndex].split('\t')[columnIndex])
 				#else:
 				#	maxDistSpecies = 1.0
+				mlPresent = True
 				if flag1 or flag2:
+					#print 'yes'
 					# Checking for the likelihood score in cache directory
 					if os.path.exists(cacheDir + '/' + species1 + '_' + species2 + '.lik'):
 						maxDistSpecies = float(open(cacheDir + '/' + species1 + '_' + species2 + '.lik').read().split('\n')[0])
 					elif os.path.exists(cacheDir + '/' + species2 + '_' + species1 + '.lik'):
 						maxDistSpecies = float(open(cacheDir + '/' + species2 + '_' + species1 + '.lik').read().split('\n')[0])
 					else:
-						print 'No likelihood distance found between species: %s and %s. Using default likelihood distance of 1.0!' %(species1, species2)
-						maxDistSpecies = 1.00
-
-				if not maxDistSpecies == 0:
-					scales.append(maxDistOrth / maxDistSpecies)
+						#print 'No likelihood distance found between species: %s and %s. Using default likelihood distance of 1.0!' %(species1, species2)
+						#maxDistSpecies = 1.00
+						mlPresent = False
 				else:
+					maxDistSpecies = float(speciesMaxFile[rowIndex].split('\t')[columnIndex])
+
+				#print maxDistSpecies
+				if mlPresent and not maxDistSpecies == 0:
+					scales.append(maxDistOrth / maxDistSpecies)
+				elif mlPresent and mayDistSpecies == 0:
 					scales.append(1.00)
 	except:
 		print '### ERROR: Scaling factor calculation had an error ###'
 		sys.exit('Maximum likelihood files are invalid!')
-	return median(scales)							
+
+	if len(scales) >= 1:
+		return median(scales)
+	else:
+		return sf											
 
 # Main module for running tree reconstruction
 def main(Raxml, Linsi, Clustalw, Degap, Orthologs, AaMatrix, Protein_id, Puzzle, Params_puzzle, Map_file, Species_maxLikMatrix, Scale_file, Tree_file, delTemp, defScale, cache_dir):

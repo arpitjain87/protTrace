@@ -75,12 +75,42 @@ def createTransformAlign(transFile, phyFile, editPhyFile, indelsPos):
 		fnew.write('\n')
 		c += 1
 	fnew.close()
+
+def postTransformAlign(trans):
+	t = open(trans).read()
+	t0 = open(trans).read().split('\n')
+
+	result = open(trans, 'w')
+	result.write(t0[0] + '\n')
+	try:
+		stateOld = []
+
+		for i in range(1, len(t0) - 1):
+			statesList = t0[i].split()[1:]
+			for s in statesList:
+				if not int(s) in stateOld:
+					stateOld.append(int(s))
+
+		stateOld.sort()
+		stateOld = stateOld[::-1]
+
+		for i in range(len(stateOld)):
+			#print len(stateOld) - i, stateOld[i]
+			t = t.replace(' ' + str(stateOld[i]) + ' ', ' ' + str(len(stateOld) - 1 - i) + ' ').replace(' ' + str(stateOld[i]) + '\n', ' ' + str(len(stateOld) -1 - i) + '\n')
+	except:
+		print 'WARNING: Error while editing the transformed alignment file!'
+		pass	
+
+	for i in range(1, len(t.split('\n')) - 1):
+		result.write(t.split('\n')[i] + '\n')
+
 		
 def main(phy_file, trans_file):		
 	if not os.stat(phy_file).st_size == 0:
 		edit_file = preprocessPhy(phy_file)
 		indelBlocksPos = calculateIndelBlocks(edit_file)
 		createTransformAlign(trans_file, phy_file, edit_file, indelBlocksPos)
+		postTransformAlign(trans_file)
 		return len(indelBlocksPos)
 	else:
 		print 'Transformed alignment cannot be created for empty phylip files!'	

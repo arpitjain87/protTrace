@@ -156,12 +156,12 @@ def scalingFactorMax():
 				if flag1 or flag2:
 					# Checking for the likelihood score in cache directory
 					if os.path.exists(cacheDir + '/' + species1 + '_' + species2 + '.lik'):
-						return float(open(cacheDir + '/' + species1 + '_' + species2 + '.lik').read().split('\n')[0])
+						maxDistSpecies = float(open(cacheDir + '/' + species1 + '_' + species2 + '.lik').read().split('\n')[0])
 					elif os.path.exists(cacheDir + '/' + species2 + '_' + species1 + '.lik'):
-						return float(open(cacheDir + '/' + species2 + '_' + species1 + '.lik').read().split('\n')[0])
+						maxDistSpecies = float(open(cacheDir + '/' + species2 + '_' + species1 + '.lik').read().split('\n')[0])
 					else:
 						print 'No likelihood distance found between species: %s and %s. Using default likelihood distance of 1.0!' %(species1, species2)
-						return 1.00
+						maxDistSpecies = 1.00
 
 				if not maxDistSpecies == 0:
 					scales.append(maxDistOrth / maxDistSpecies)

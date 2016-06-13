@@ -139,7 +139,9 @@ def scalingFactorMax():
 				#	if species2 == hamstrFile[j].split('\t')[3]:
 				#		hamstr2 = hamstrFile[j].split('\t')[0]
 				#		break
+				#print species1, species2
 				maxDistOrth = float(orthMaxFile[i].split('\t')[k + 1])
+				#print maxDistOrth
 				flag1 = True
 				flag2 = True
 				for l in range(len(speciesMaxFile) - 1):
@@ -180,7 +182,7 @@ def scalingFactorMax():
 	if len(scales) >= 1:
 		return median(scales)
 	else:
-		return sf											
+		return sf							
 
 # Main module for running tree reconstruction
 def main(Raxml, Linsi, Clustalw, Degap, Orthologs, AaMatrix, Protein_id, Puzzle, Params_puzzle, Map_file, Species_maxLikMatrix, Scale_file, Tree_file, delTemp, defScale, cache_dir):

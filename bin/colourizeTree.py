@@ -135,8 +135,9 @@ def main(nexusTreeFile, mapFile, protId, spTree, plotFigTree, speciesMaxLikFile,
 	except IOError:
 		print 'ERROR: Colourizing tree encountered problem!!!'
 
-	traceResults = open('trace_results_%s_onlyTreeSpecies.txt' %protId, 'w')
-	traceResultsAll = open('trace_results_%s_allSpecies.txt' %protId, 'w')
+	#traceResults = open('trace_results_%s_onlyTreeSpecies.txt' %protId, 'w')
+	#traceResultsAll = open('trace_results_%s_allSpecies.txt' %protId, 'w')
+	traceResults = open('trace_results_%s.txt' %protId, 'w')
 
 	if os.path.exists(nexusTreeFile):
 	#speciesId = nexusTreeFile.split('_')[1].split('.')[0][:5]
@@ -154,7 +155,7 @@ def main(nexusTreeFile, mapFile, protId, spTree, plotFigTree, speciesMaxLikFile,
 	traceResults.close()
 
 	### Calculating traceabilities for all species in the input species maximum likelihood distances file
-	for i in range(len(hamstrMapFile) - 1):
+	'''for i in range(len(hamstrMapFile) - 1):
 		if speciesId == hamstrMapFile[i].split('\t')[3]:
 			speciesName = hamstrMapFile[i].split('\t')[1]
 			break
@@ -167,9 +168,9 @@ def main(nexusTreeFile, mapFile, protId, spTree, plotFigTree, speciesMaxLikFile,
 		#print "tempSpecies:", tempSpecies
 		try:
 			if not tempSpecies == speciesName:
-				'''if tempSpecies == "crypa_4119":
+				if tempSpecies == "crypa_4119":
 					colourCode, traceValue = getColourCode(speciesName, "CRYPHONECTRIA_PARASITICA")
-					traceResultsAll.write(speciesName + '\t' + "CRYPHONECTRIA_PARASITICA" + '\t' + str(traceValue) + '\n')'''
+					traceResultsAll.write(speciesName + '\t' + "CRYPHONECTRIA_PARASITICA" + '\t' + str(traceValue) + '\n')
 				#else:
 				colourCode, traceValue = getColourCode(speciesName, tempSpecies)
 				traceResultsAll.write(speciesName + '\t' + tempSpecies + '\t' + str(traceValue) +'\n')
@@ -178,5 +179,5 @@ def main(nexusTreeFile, mapFile, protId, spTree, plotFigTree, speciesMaxLikFile,
 				traceResultsAll.write(speciesName + '\t' + tempSpecies + '\t' + str(traceValue) + '\n')
 		except:
 			pass
-	traceResultsAll.close()
+	traceResultsAll.close()'''
 	

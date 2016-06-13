@@ -74,7 +74,7 @@ def main(prot_id, config_file):
 		if trials >= 10:
 			sys.exit('TOO MANY TRIALS FOR REVOLVER!!! Check REvolver configuration file.')
 	
-		print '#####\tTIME TAKEN: %s mins #####' %((time.time() - start_time) / 60)
+		print '#####\tTIME TAKEN: %s mins REvolver/BLAST#####' %((time.time() - start_time) / 60)
 
 		ffull = open('full_decay_results_%s.txt' %prot_id, 'w')
 		fsum = open('decay_summary_%s.txt' %prot_id, 'w')

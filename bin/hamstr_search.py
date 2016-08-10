@@ -32,6 +32,7 @@ def copy_edit_core_ortholog():
 	fasta_file = core_ortholog_prot_dir + '/' + protein_id + '.fa'
 	s1 = open(core_ortholog).read().split('\n')
 	fnew = open(fasta_file, 'w')
+	flag = True #Check whether HaMStR has a starting sequence#
 	for i in range(0, len(s1)-1, 2):
 		if s1[i][0] == '>':
 			s2 = open(hamstr_map_oma).read().split('\n')
@@ -47,9 +48,15 @@ def copy_edit_core_ortholog():
 					for k in range(len(s3) - 1):
 						if s1[i+1] == s3[k].replace('*', ''):
 							fnew.write(s1[i][0] + protein_id + '|' + dirs.split('/')[-1] + '|' + s3[k-1][1:] + '\n' + s1[i+1] + '\n')
+							flag = False
 							break
 					break
 	fnew.close()
+
+	if flag:
+		return False
+	else:
+		return True
 
 # Function to run mafft and hmmbuild on the edited core ortholog fasta file
 def align_hmm_run():
@@ -172,21 +179,24 @@ def main(hamstrFile, coreOrtholog, protId, hamstrMapOma, delTemp):
 	#print 'HAMSTR 2: Making new directories'
 	make_new_dir()
 	#print 'HAMSTR 3: Edit core orthologs file'
-	copy_edit_core_ortholog()
+	success = copy_edit_core_ortholog()
 	#print 'HAMSTR 4: Creating alignment and HMMER file'
-	align_hmm_run()
-	#print 'HAMSTR 5: Running HAMSTR'
-	try:
-		hamstr_run()
-	except KeyboardInterrupt:
-		sys.exit('Keyboard interruption by user!!!')
-	#print 'HAMSTR 6: Adding orthologs to the core set'
-	write_output()
-	#print 'HAMSTR 7: Editing the orthologs and keeping only those present in the species tree'
-	finalEditOrthologsSeqs()
-	#print 'HAMSTR 8: Removing the directories created by HaMStR'
+	if success:
+		align_hmm_run()
+		#print 'HAMSTR 5: Running HAMSTR'
+		try:
+			hamstr_run()
+		except KeyboardInterrupt:
+			sys.exit('Keyboard interruption by user!!!')
+		#print 'HAMSTR 6: Adding orthologs to the core set'
+		write_output()
+		#print 'HAMSTR 7: Editing the orthologs and keeping only those present in the species tree'
+		finalEditOrthologsSeqs()
+		#print 'HAMSTR 8: Removing the directories created by HaMStR'
 	if delTemp:
 		removeHaMStRdirs()
+
+	return success
 			
 				
 

@@ -102,9 +102,29 @@ def Preprocessing(prot_id, querySeq, config_file):
 					print 'Pre-HaMStR computed orthologs file found in Cache for re-use!'
 					os.system('cp %s %s' %(cache_dir + '/' + orth_file, orth_file))
 				else: 
-					hamstr_search.main(prot_config.hamstr, orth_file, prot_id, prot_config.hamstr_oma_tree_map, delTemp)
-					print '#####\tTIME TAKEN: %s mins\tHaMStR#####' %((time.time() - startProcessTime) / 60)
-					os.system('cp %s %s' %(orth_file, cache_dir + '/' + orth_file))
+					success = hamstr_search.main(prot_config.hamstr, orth_file, prot_id, prot_config.hamstr_oma_tree_map, delTemp)
+					if success:
+						print '#####\tTIME TAKEN: %s mins\tHaMStR#####' %((time.time() - startProcessTime) / 60)
+						os.system('cp %s %s' %(orth_file, cache_dir + '/' + orth_file))
+					else:
+						if prot_config.run_hamstrOneSeq:
+							print '##### HaMStROneSeq search for orthologs #####'
+							startProcessTime = time.time()
+							if cache and os.path.exists(cache_dir + '/' + orth_file):
+								print 'Pre-HaMStR computed orthologs file found in Cache for re-use!'
+								os.system('cp %s %s' %(cache_dir + '/' + orth_file, orth_file))
+							else:
+								# Read the orthologs file and limit it to just the query species id and sequence
+								ortholog_temp = open(orth_file).read().split('\n')
+								rewrite_orth_file = open(orth_file, 'w')
+								for orthLines in range(len(ortholog_temp) - 1):
+									if '>' in ortholog_temp[orthLines] and species_id in ortholog_temp[orthLines]:
+										rewrite_orth_file.write(ortholog_temp[orthLines] + '\n' + ortholog_temp[orthLines + 1])
+										break
+								rewrite_orth_file.close()
+								run_hamstrOneSeq(prot_config.hamstr, os.path.abspath(orth_file), prot_config.hamstr_oma_tree_map, prot_id, prot_config.formatdb, prot_config.blastp, proteome_file, delTemp)
+								print '#####\tTIME TAKEN: %s mins\tHaMStR-OneSeq#####' %((time.time() - startProcessTime) / 60)
+								os.system('cp %s %s' %(orth_file, cache_dir + '/' + orth_file))
 		elif len(f) > 0 and len(f) < 4:
 			if prot_config.run_hamstrOneSeq:
 				print '##### HaMStROneSeq search for orthologs #####'

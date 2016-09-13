@@ -24,12 +24,12 @@ def rename_orth_file():
 def msa_convert():
 	#print 'MSA of the renamed ortholog sequences file:'
 	if os.path.exists(aln_file):
-		os.system('cp %s temp_orth_%s.aln' %(aln_file, protein_id))
+		os.system('cp -avr %s temp_orth_%s.aln' %(aln_file, protein_id))
 	else:
 		os.system('%s temp_orth_%s.fa > temp_orth_%s.aln' %(linsi, protein_id, protein_id))
 
 	if os.path.exists(phy_file):
-		os.system('cp %s temp_orth_%s.phy' %(phy_file, protein_id))
+		os.system('cp -avr %s temp_orth_%s.phy' %(phy_file, protein_id))
 	else:
 		os.system('%s -convert -infile=temp_orth_%s.aln -outfile=temp_orth_%s.phy -output=PHYLIP' %(clustalw, protein_id, protein_id))
 

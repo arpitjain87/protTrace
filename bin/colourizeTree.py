@@ -79,7 +79,7 @@ def colourize(speciesName, nexusTreeFile):
 				traceResults.write(speciesName + '\t' + tempSpecies + '\t' + str(traceValue) +'\n')
 				fnew.write(tree[i] + '[&!color=#-' + colourCode + ']' + '\n')
 			except:
-				sys.exit('ERROR: Computing traceabilities caused some trouble. Some species in the tree are not present in maximum likelihood matrix!')
+				sys.exit("ERROR: Check species %s in species tree and used mapping files" %tempSpecies)
 				pass
 			
 		else:
@@ -122,8 +122,8 @@ def main(nexusTreeFile, mapFile, protId, spTree, plotFigTree, speciesMaxLikFile,
 
 	speciesId = species_id
 	sp_max_file = speciesMaxLikFile
-	decayRate = 0.01
-	decayPop = 1
+	decayRate = 0.1
+	decayPop = 0.04
 	cacheDir = cache_dir
 
 	try:

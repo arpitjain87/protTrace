@@ -70,7 +70,7 @@ def Preprocessing(prot_id, querySeq, config_file):
 	# followed with the extraction of the OMA group
 	if prot_config.search_ortholog_groups:
 		startProcessTime = time.time()		
-		run = findOmaOrthologs(prot_id, querySeq, prot_config.path_oma_group, prot_config.path_oma_seqs)
+		run = findOmaOrthologs(prot_id, querySeq, prot_config.path_oma_group, prot_config.path_oma_seqs, proteome_file, prot_config.formatdb, prot_config.blastp, delTemp)
 		print '#####\tTIME TAKEN: %s mins\tSearch OGs#####' %((time.time() - startProcessTime) / 60)
 
 	# Search for the ortholog sequences for the respective OMA orthologs group
@@ -144,6 +144,13 @@ def Preprocessing(prot_id, querySeq, config_file):
 	except KeyboardInterrupt:
 		sys.exit('Keyboard interruption by user!!!')
 
+	# Performs MSA on the orthologs sequences
+	if prot_config.perform_msa:
+		print '##### Performing MSA of the orthologs sequences #####'
+		startProcessTime = time.time()
+		performMSA(prot_config.msa, prot_config.clustalw)
+		print '#####\tTIME TAKEN: %s mins\tMAFFT#####' %((time.time() - startProcessTime) / 60)
+
 	# Calls tree reconstruction module which generates tree using degapped alignment
 	# and also calculates the scaling factor based on maximum likelihood distance between species
 	if prot_config.calculate_scaling_factor:
@@ -151,13 +158,6 @@ def Preprocessing(prot_id, querySeq, config_file):
 		startProcessTime = time.time()
 		treeReconstruction.main(prot_config.tree_reconstruction, prot_config.msa, prot_config.clustalw, prot_config.degapping, orth_file, prot_config.aa_substitution_matrix, prot_id, prot_config.treePuzzle, prot_config.parameters_treePuzzle, prot_config.hamstr_oma_tree_map, prot_config.species_MaxLikMatrix, scale_file, tree_file, delTemp, prot_config.default_scaling_factor, cache_dir)
 		print '#####\tTIME TAKEN: %s mins\tRAxML#####' %((time.time() - startProcessTime) / 60)
-
-	# Performs MSA on the orthologs sequences
-	if prot_config.perform_msa:
-		print '##### Performing MSA of the orthologs sequences #####'
-		startProcessTime = time.time()
-		performMSA(prot_config.msa, prot_config.clustalw)
-		print '#####\tTIME TAKEN: %s mins\tMAFFT#####' %((time.time() - startProcessTime) / 60)
 
 	# Calculate indels
 	if prot_config.calculate_indel:
@@ -289,7 +289,7 @@ def run_hamstrOneSeq(hamstr, orth_file, map_file, prot_id, formatdb, blastp, pro
 		print 'SeqId: %s  ...  OmaId: %s' %(seqId, omaId)
 		try:
 			if not seqId == "NA":
-				command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -checkCoorthologsRef -cleanup -fasoff -local -coreStrict -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
+				command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -checkCoorthologsRef -cleanup -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
 				print '##### Running hamstrOneSeq command: ', command
 				os.system(command)
 			else:
@@ -481,14 +481,14 @@ def findOmaSequences(prot_id, omaSeqs, species_id):
 				
 	
 # Read OMA orthologs groups file and parses the ortholog list for input OMA id
-def findOmaOrthologs(prot_id, querySeq, omaGroup, omaSeqs):
+def findOmaOrthologs(prot_id, querySeq, omaGroup, omaSeqs, proteome_file, formatdb, blastp, delTemp):
 	try:
 		if not querySeq == 'None':
 			run = 1
 			flag = False
 			with open(omaSeqs) as f:
 				for line in f:
-					if line[0] == '>':
+					if '>' in line:
 						if f.next().split('\n')[0].replace('*', "") == querySeq.split('\n')[0].replace('*', ''):
 							prot_id_temp = line.split('\n')[0][1:]
 							oma = open(omaIdFile, 'w')
@@ -499,6 +499,31 @@ def findOmaOrthologs(prot_id, querySeq, omaGroup, omaSeqs):
 							#fnew.write(inputId + '\n')
 							#fnew.close()
 							break
+
+			if not flag:
+				print '##### WARNING: The input sequence is not present in OMA sequences. Performing a BLAST search to get the closest best hit. #####'
+				currentWorkDir = os.getcwd()
+				tempDir = 'temp_blast_' + prot_id
+				if not os.path.exists(tempDir):
+					os.mkdir(tempDir)
+				os.chdir(tempDir)
+				os.system('cp -avr %s proteome.fa' %(proteome_file))
+				com = '%s -i proteome.fa' %(formatdb)
+				os.system(com)
+				tempFile = open('temp_inputSeq.fa', 'w')
+				tempFile.write('>' + prot_id + '\n' + querySeq)
+				tempFile.close()
+				os.system('%s -query temp_inputSeq.fa -db proteome.fa -evalue 0.00001 -outfmt 6 -max_target_seqs 1 -out temp.txt' %(blastp))
+				if os.path.exists('temp.txt') and len(open('temp.txt').read().split('\n')) > 1:
+					prot_id_temp = open('temp.txt').read().split('\n')[0].split('\t')[1]
+					oma = open(omaIdFile, 'w')
+					oma.write(prot_id_temp)
+					oma.close()
+					flag = True
+				os.chdir(currentWorkDir)
+				if delTemp:
+					os.system('rm -rf %s' %tempDir)
+
 			if flag:
 				run = 2
 				print '##### Searching for OMA ortholog group for %s #####' %prot_id
@@ -536,7 +561,7 @@ def findOmaOrthologs(prot_id, querySeq, omaGroup, omaSeqs):
 				fnew.close()
 			
 	except IOError:
-		sys.exit('ERROR: Cannot find OMA orthologs id. OMA group file does not exist!')
+		sys.exit('ERROR: Cannot find OMA orthologs id. Check OMA files given as input!')
 
 	return run
 

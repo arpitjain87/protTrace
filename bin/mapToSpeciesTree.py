@@ -26,8 +26,8 @@ def main(protId, config_file):
 	# Save the species name into a variable taxonset
 	trees = dendropy.TreeList.get_from_path(prot_config.species_tree, "newick")
 	taxonset = []
-	for element in trees.taxon_set:
-		taxonset.append(str(element))
+	for element in trees.taxon_namespace:
+		taxonset.append(str(element).replace("'", "").replace(" ", "_"))
 
 	generateNexusFile()
 	colourizeTree.main(nexus_file, prot_config.hamstr_oma_tree_map, prot_id, prot_config.species_tree, prot_config.plot_figtree, prot_config.species_MaxLikMatrix, species_id, cache_dir)

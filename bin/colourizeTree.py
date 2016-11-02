@@ -76,6 +76,7 @@ def colourize(speciesName, nexusTreeFile):
 					traceResults.write(speciesName + '\t' + "CRYPHONECTRIA_PARASITICA" + '\t' + str(traceValue) + '\n')
 				else:'''
 				colourCode, traceValue = getColourCode(speciesName, tempSpecies)
+				#print 'yes'
 				traceResults.write(speciesName + '\t' + tempSpecies + '\t' + str(traceValue) +'\n')
 				fnew.write(tree[i] + '[&!color=#-' + colourCode + ']' + '\n')
 			except:

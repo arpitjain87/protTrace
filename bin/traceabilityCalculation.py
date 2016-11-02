@@ -28,10 +28,9 @@ def main(prot_id, config_file):
 	proteome_file = 'proteome_' + prot_id
 
 	trees = dendropy.TreeList.get_from_path(prot_config.simulation_tree, "newick")
-	#print len(trees.taxon_set)
 	taxonset = []
-	for element in trees.taxon_set:
-		taxonset.append(str(element))
+	for element in trees.taxon_namespace:
+		taxonset.append(str(element).replace("'", ""))
 	taxonset = taxonset[::-1]
 	detection_probability = {}
 	for taxas in taxonset:

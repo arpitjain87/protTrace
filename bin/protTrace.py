@@ -4,8 +4,14 @@
 # Author: Arpit Jain
 # Date: 25 May, 2015
 #
-# Modified the script to run more robustly with sequences file as input
 # Date: 01 September, 2015
+# Modified the script to run more robustly with sequences file as input
+#
+# Date: 10 November, 2016
+# HaMStR-OneSeq run bug fixed
+# When performing HaMStR search, if we are left with just 1 sequence, automatically redirect to HaMStR-OneSeq search
+# Sometimes input files had '\r' character before a new line ('\n'), this has been fixed while reading the input file
+#
 
 import os, sys
 import getopt
@@ -59,7 +65,7 @@ def main(argv):
 			for seqs in fa:
 				if '>' in seqs:
 					print '##### Running for fasta id: %s #####' %seqs[1:-1]
-					inputId = seqs.split('\n')[0][1:]
+					inputId = seqs.split()[0][1:]
 					querySeq = fa.next()
 
 				if proteinParams.preprocessing:

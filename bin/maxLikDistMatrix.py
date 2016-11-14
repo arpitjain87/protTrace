@@ -7,11 +7,7 @@ import os, sys
 def main(infile, prot_id):
 	outfile = open('maxLikDist_%s.txt' %prot_id, 'w')
 
-	for i in range(len(infile) - 1):
-		if infile[i] == 'MAXIMUM LIKELIHOOD DISTANCES':
-			start_index = i + 6
-			break
-	for j in range(start_index, len(infile) - 1):
+	for j in range(1, len(infile) - 1):
 		if infile[j] != "":
 			if not infile[j].split()[0][0] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
 				outfile.write('\n' + infile[j].split()[0])

@@ -77,15 +77,11 @@ def rm_temp():
 	os.system('rm temp_orth_%s.fa' %protein_id)
 	os.system('rm temp_orth_%s.aln' %protein_id)
 	os.system('rm temp_orth_%s.phy' %protein_id)
-	#os.system('rm temp_orth_aln_%s.fa' %protein_id)
-	#os.system('rm temp_orth_aln_degap_%s.fa' %protein_id)
+	os.system('rm temp_orth_%s.phy*' %protein_id)
 	if os.path.exists('temp_orth_%s.phy.reduced' %protein_id):
 		os.system('rm temp_orth_%s.phy.reduced' %protein_id)
 	os.system('rm temp_parameters_%s.txt' %protein_id)
-	os.system('rm outfile')
-	os.system('rm outdist')
 	os.system('rm maxLikDist_%s.txt' %protein_id)
-	os.system('rm outlm.eps')
 
 # Perform likelihood mapping on the degapped sequences (for 4 or more sequences)
 def likelihoodMapping():
@@ -120,7 +116,7 @@ def scalingFactorMax():
 	scales = []
 	# Generate maximum likelihood distance file for orthologs
 	### NOTE THE FILE USED HERE!!!!*******************************************!!!!
-	outfile = open('outfile').read().split('\n')
+	outfile = open('temp_orth_%s.phy.dist' %protein_id).read().split('\n')
 	maxLikDistMatrix.main(outfile, protein_id)
 	try:
 		orthMaxFile = open('maxLikDist_%s.txt' %protein_id).read().split('\n')

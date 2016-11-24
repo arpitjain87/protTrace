@@ -84,7 +84,7 @@ def hamstr_run():
 			hamstr_name = dirs.split('/')[-1].split('_')[0] + '_' + dirs.split('/')[-1].split('_')[1].split('@')[0]
 			if hamstr_name in species_in_tree:
 				file_name = dirs + '/' + dirs.split('/')[-1] + '.fa'
-				command = '%s/bin/hamstr.pl -central -sequence_file=%s -taxon=misc -hmmset=%s -strict -representative -checkCoorthologsRef -outpath=%s -hit_limit=10' %(hamstr, file_name, protein_id, output)
+				command = '%s/bin/hamstr.pl -central -sequence_file=%s -taxon=misc -hmmset=%s -strict -representative -outpath=%s -hit_limit=10' %(hamstr, file_name, protein_id, output)
 				print 'HaMStR run with command: ', command
 			#os.system('%s/bin/hamstr -sequence_file=%s -taxon=y_rbf -hmmset=%s -strict -representative -protein -outpath=%s -hit_limit=1' %(hamstr, file_name, protein_id, output))
 				try:

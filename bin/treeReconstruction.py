@@ -169,7 +169,7 @@ def scalingFactorMax():
 				#print maxDistSpecies
 				if mlPresent and not maxDistSpecies == 0:
 					scales.append(maxDistOrth / maxDistSpecies)
-				elif mlPresent and mayDistSpecies == 0:
+				elif mlPresent and maxDistSpecies == 0:
 					scales.append(1.00)
 	except:
 		print '### ERROR: Scaling factor calculation had an error ###'
@@ -177,6 +177,7 @@ def scalingFactorMax():
 
 	if len(scales) >= 1:
 		return median(scales)
+		#print "Scales: ", scales
 	else:
 		return sf							
 

@@ -164,7 +164,19 @@ def scalingFactorMax():
 						#maxDistSpecies = 1.00
 						mlPresent = False
 				else:
-					maxDistSpecies = float(speciesMaxFile[rowIndex].split('\t')[columnIndex])
+					if not speciesMaxFile[rowIndex].split('\t')[columnIndex] == "NA":
+						maxDistSpecies = float(speciesMaxFile[rowIndex].split('\t')[columnIndex])
+					else:
+						# Checking for the likelihood score in cache directory
+						if os.path.exists(cacheDir + '/' + species1 + '_' + species2 + '.lik'):
+							maxDistSpecies = float(open(cacheDir + '/' + species1 + '_' + species2 + '.lik').read().split('\n')[0])
+						elif os.path.exists(cacheDir + '/' + species2 + '_' + species1 + '.lik'):
+							maxDistSpecies = float(open(cacheDir + '/' + species2 + '_' + species1 + '.lik').read().split('\n')[0])
+						else:
+							#print 'No likelihood distance found between species: %s and %s. Using default likelihood distance of 1.0!' %(species1, species2)
+							#maxDistSpecies = 1.00
+							mlPresent = False
+						maxDistSpecies = 0
 
 				#print maxDistSpecies
 				if mlPresent and not maxDistSpecies == 0:
@@ -177,7 +189,6 @@ def scalingFactorMax():
 
 	if len(scales) >= 1:
 		return median(scales)
-		#print "Scales: ", scales
 	else:
 		return sf							
 

@@ -51,11 +51,7 @@ def calculateMaxLikDist(species1, species2):
 			print 'No likelihood distance found between species: %s and %s. Using default likelihood distance of 1.0!' %(species1, species2)
 			return 1.00		
 	else:
-		if not speciesMaxFile[rowIndex].split(sep)[columnIndex] == "NA":
-			return float(speciesMaxFile[rowIndex].split(sep)[columnIndex])
-		else:
-			print 'No likelihood distance found between species: %s and %s. Using default likelihood distance of 1.0!' %(species1, species2)
-			return 1.00
+		return float(speciesMaxFile[rowIndex].split(sep)[columnIndex])
 
 def colourize(speciesName, nexusTreeFile):
 	tree = open(nexusTreeFile).read().split('\n')

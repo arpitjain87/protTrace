@@ -26,15 +26,16 @@ def make_new_dir():
 	os.system('mkdir %s' %output)
 
 # Function to read the core orthologs file and make a copy of it in the HAMSTR folder
-# Edits the fasta file how its required for the HAMSTR run
+# Edits the fasta file how in format required for the HAMSTR run
 def copy_edit_core_ortholog():
 	global fasta_file
 	fasta_file = core_ortholog_prot_dir + '/' + protein_id + '.fa'
 	s1 = open(core_ortholog).read().split('\n')
 	fnew = open(fasta_file, 'w')
-	flag = True #Check whether HaMStR has a starting sequence#
+	flag = True ###	Check whether HaMStR has a starting sequence	###
 	for i in range(0, len(s1)-1, 2):
 		if s1[i][0] == '>':
+			sequence = s1[i+1].replace('*', '').replace('X', '')
 			s2 = open(hamstr_map_oma).read().split('\n')
 			for j in range(len(s2)-1):
 				if s2[j].split()[3] == s1[i][1:6]:
@@ -45,11 +46,35 @@ def copy_edit_core_ortholog():
 							blastFastaFile = dirs + '/' + dirs.split('/')[-1] + '.fa'
 							break
 					s3 = open(blastFastaFile).read().split('\n')
+					runBlast = True # If the sequence is not found in our database then, take the top blast hit #
 					for k in range(len(s3) - 1):
-						if s1[i+1] == s3[k].replace('*', ''):
-							fnew.write(s1[i][0] + protein_id + '|' + dirs.split('/')[-1] + '|' + s3[k-1][1:] + '\n' + s1[i+1] + '\n')
+						if sequence == s3[k].replace('*', '').replace('X', ''):
+							fnew.write(s1[i][0] + protein_id + '|' + dirs.split('/')[-1] + '|' + s3[k-1][1:] + '\n' + sequence + '\n')
 							flag = False
+							runBlast = False
 							break
+
+					if runBlast:
+						print 'No matching sequence found in hamstr blast directory! Running BLAST search now..'
+						currentWorkDir = os.getcwd()
+						tempDir = 'temp_blast_' + hamstrProtId
+						if not os.path.exists(tempDir):
+							os.mkdir(tempDir)
+						os.chdir(tempDir)
+						temp_query = open('temp_query.fa', 'w')
+						temp_query.write(s1[i] + '\n' + s1[i+1])
+						temp_query.close()
+						os.system('cp -avr %s temp_proteome.fa' %(blastFastaFile))
+						os.system('%s -i temp_proteome.fa' %(format_db))
+						os.system('%s -query temp_query.fa -db temp_proteome.fa -evalue 0.00001 -outfmt 6 -max_target_seqs 1 -out temp_out.txt' %(blastp))
+
+						if os.path.exists('temp_out.txt') and len(open('temp_out.txt').read().split('\n')) > 1:
+							hit_id = open('temp_out.txt').read().split('\n')[0].split('\t')[1]
+							fnew.write(s1[i][0] + protein_id + '|' + dirs.split('/')[-1] + '|' + hit_id + '\n' + sequence + '\n')
+						os.chdir(currentWorkDir)
+
+						if delTemp:
+							os.system('rm -rf %s' %tempDir)
 					break
 	fnew.close()
 
@@ -84,9 +109,9 @@ def hamstr_run():
 			hamstr_name = dirs.split('/')[-1].split('_')[0] + '_' + dirs.split('/')[-1].split('_')[1].split('@')[0]
 			if hamstr_name in species_in_tree:
 				file_name = dirs + '/' + dirs.split('/')[-1] + '.fa'
-				command = '%s/bin/hamstr.pl -central -sequence_file=%s -taxon=misc -hmmset=%s -strict -representative -outpath=%s -hit_limit=10' %(hamstr, file_name, protein_id, output)
+				command = '%s/bin/hamstr.pl -central -sequence_file=%s -taxon=misc -hmmset=%s -strict -checkCoorthologsRef -representative -outpath=%s -hit_limit=10' %(hamstr, file_name, protein_id, output)
+				#command = '%s/bin/hamstr.pl -central -sequence_file=%s -taxon=misc -hmmset=%s -strict -representative -outpath=%s -hit_limit=10' %(hamstr, file_name, protein_id, output)
 				print 'HaMStR run with command: ', command
-			#os.system('%s/bin/hamstr -sequence_file=%s -taxon=y_rbf -hmmset=%s -strict -representative -protein -outpath=%s -hit_limit=1' %(hamstr, file_name, protein_id, output))
 				try:
 					subprocess.call(command, shell=True)
 				except KeyboardInterrupt as e:
@@ -162,37 +187,40 @@ def removeHaMStRdirs():
 		os.system('rm -Rf %s/output/%s' %(hamstr, protein_id))
 
 # The main method to run HaMStR search
-def main(hamstrFile, coreOrtholog, protId, hamstrMapOma, delTemp):
+def main(hamstrFile, coreOrtholog, protId, hamstrMapOma, formatdb, blast, del_temp):
 	print '##### Running HaMStR search #####'
 	
-	global hamstr, core_ortholog, protein_id, hamstr_map_oma, core_ortholog_prot_dir, output, fasta_file, aln_file, hmm_file
-	global core_ortholog_prot_dir, output
+	global hamstr, core_ortholog, protein_id, hamstr_map_oma, core_ortholog_prot_dir, output, fasta_file, aln_file, hmm_file, format_db, blastp
+	global core_ortholog_prot_dir, output, delTemp
 	protein_id = protId
 	core_ortholog = coreOrtholog
 	hamstr = hamstrFile
 	core_ortholog_prot_dir = hamstr + '/core_orthologs/' + protein_id
 	output = hamstr + '/output/' + protein_id
 	hamstr_map_oma = hamstrMapOma
+	format_db = formatdb
+	blastp = blast
+	delTemp = del_temp
 		
-	#print 'HAMSTR 1: Removing old directories'
+	print 'HaMStR processing Step 1: Removing old directories'
 	remove_old_dir()
-	#print 'HAMSTR 2: Making new directories'
+	print 'HaMStR processing Step 2: Making new directories'
 	make_new_dir()
-	#print 'HAMSTR 3: Edit core orthologs file'
+	print 'HaMStR processing Step 3: Edit core orthologs file'
 	success = copy_edit_core_ortholog()
-	#print 'HAMSTR 4: Creating alignment and HMMER file'
+	print 'HaMStR processing Step 4: Creating alignment and HMMER file'
 	if success:
 		align_hmm_run()
-		#print 'HAMSTR 5: Running HAMSTR'
+		print 'HaMStR processing Step 5: Running HAMSTR'
 		try:
 			hamstr_run()
 		except KeyboardInterrupt:
 			sys.exit('Keyboard interruption by user!!!')
-		#print 'HAMSTR 6: Adding orthologs to the core set'
+		print 'HaMStR processing Step 6: Adding orthologs to the core set'
 		write_output()
-		#print 'HAMSTR 7: Editing the orthologs and keeping only those present in the species tree'
+		print 'HaMStR processing Step 7: Editing the orthologs and keeping only those present in the species tree'
 		finalEditOrthologsSeqs()
-		#print 'HAMSTR 8: Removing the directories created by HaMStR'
+		print 'HaMStR processing Step 8: Removing the directories created by HaMStR'
 	if delTemp:
 		removeHaMStRdirs()
 

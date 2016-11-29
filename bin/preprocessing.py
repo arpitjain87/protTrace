@@ -36,7 +36,7 @@ def Preprocessing(prot_id, querySeq, config_file):
 	orth_file = 'ogSeqs_' + prot_id + '.fa'
 	aln_file = 'ogSeqs_' + prot_id + '.aln'
 	phy_file = 'ogSeqs_' + prot_id + '.phy'
-	tree_file = 'RAxML_bestTree.' + prot_id #CHANGE HERE IF RAxML OUTPUT NAMES CHANGE
+	tree_file = 'RAxML_bestTree.' + prot_id 	###	CHANGE HERE IF RAxML OUTPUT NAMES CHANGE 	###
 	trans_file = 'ogSeqs_' + prot_id + '.trans'
 	hmm_file = prot_id + '.hmm'
 	xml_file = 'revolver_config_' + prot_id + '.xml'
@@ -81,7 +81,7 @@ def Preprocessing(prot_id, querySeq, config_file):
 		else:
 			if run == 2:
 				startProcessTime = time.time()
-				findOmaSequences(prot_id, prot_config.path_oma_seqs, species_id)
+				findOmaSequences(prot_id, prot_config.path_oma_seqs, species_id, prot_config.hamstr_oma_tree_map)
 				print '#####\tTIME TAKEN: %s mins\tSearch OGSeqs#####' %((time.time() - startProcessTime) / 60)
 			else:
 				print '##### Preparing ortholog file #####'
@@ -102,7 +102,7 @@ def Preprocessing(prot_id, querySeq, config_file):
 					print 'Pre-HaMStR computed orthologs file found in Cache for re-use!'
 					os.system('cp %s %s' %(cache_dir + '/' + orth_file, orth_file))
 				else: 
-					success = hamstr_search.main(prot_config.hamstr, orth_file, prot_id, prot_config.hamstr_oma_tree_map, delTemp)
+					success = hamstr_search.main(prot_config.hamstr, orth_file, prot_id, prot_config.hamstr_oma_tree_map, prot_config.formatdb, prot_config.blastp, delTemp)
 					if success:
 						print '#####\tTIME TAKEN: %s mins\tHaMStR#####' %((time.time() - startProcessTime) / 60)
 						os.system('cp %s %s' %(orth_file, cache_dir + '/' + orth_file))
@@ -125,6 +125,30 @@ def Preprocessing(prot_id, querySeq, config_file):
 								run_hamstrOneSeq(prot_config.hamstr, os.path.abspath(orth_file), prot_config.hamstr_oma_tree_map, prot_id, prot_config.formatdb, prot_config.blastp, proteome_file, delTemp)
 								print '#####\tTIME TAKEN: %s mins\tHaMStR-OneSeq#####' %((time.time() - startProcessTime) / 60)
 								os.system('cp %s %s' %(orth_file, cache_dir + '/' + orth_file))
+
+			elif prot_config.run_hamstrOneSeq:
+				startProcessTime = time.time()
+				print '##### HaMStROneSeq search for orthologs #####'
+				if cache and os.path.exists(cache_dir + '/' + orth_file):
+					print 'Pre-HaMStR computed orthologs file found in Cache for re-use!'
+					os.system('cp %s %s' %(cache_dir + '/' + orth_file, orth_file))
+				else:
+					# Read the orthologs file and limit it to just the query species id and sequence
+					ortholog_temp = open(orth_file).read().split('\n')
+					rewrite_orth_file = open(orth_file, 'w')
+					for orthLines in range(len(ortholog_temp) - 1):
+						if '>' in ortholog_temp[orthLines] and species_id in ortholog_temp[orthLines]:
+							rewrite_orth_file.write(ortholog_temp[orthLines] + '\n' + ortholog_temp[orthLines + 1])
+							break
+					rewrite_orth_file.close()
+					run_hamstrOneSeq(prot_config.hamstr, os.path.abspath(orth_file), prot_config.hamstr_oma_tree_map, prot_id, prot_config.formatdb, prot_config.blastp, proteome_file, delTemp)
+					print '#####\tTIME TAKEN: %s mins\tHaMStR-OneSeq#####' %((time.time() - startProcessTime) / 60)
+					os.system('cp %s %s' %(orth_file, cache_dir + '/' + orth_file))
+			
+			else:
+				print '#####\tCalculating traceability with ONLY OMA set\t#####'
+				
+
 		elif len(f) > 0 and len(f) < 4:
 			if prot_config.run_hamstrOneSeq:
 				print '##### HaMStROneSeq search for orthologs #####'
@@ -136,6 +160,7 @@ def Preprocessing(prot_id, querySeq, config_file):
 					run_hamstrOneSeq(prot_config.hamstr, os.path.abspath(orth_file), prot_config.hamstr_oma_tree_map, prot_id, prot_config.formatdb, prot_config.blastp, proteome_file, delTemp)
 					print '#####\tTIME TAKEN: %s mins\tHaMStR-OneSeq#####' %((time.time() - startProcessTime) / 60)
 					os.system('cp %s %s' %(orth_file, cache_dir + '/' + orth_file))
+
 		else:
 			sys.exit('ERROR: No sequence found in OMA sequences! The ortholog sequences file is empty!')
 	except IOError:
@@ -289,12 +314,14 @@ def run_hamstrOneSeq(hamstr, orth_file, map_file, prot_id, formatdb, blastp, pro
 		print 'SeqId: %s  ...  OmaId: %s' %(seqId, omaId)
 		try:
 			if not seqId == "NA" and delTemp:
-				command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -cleanup -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
+				command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -checkCoorthologsRef -cleanup -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
+				#command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -cleanup -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
 				print '##### Running hamstrOneSeq command: ', command
 				os.system(command)
 
 			elif not seqId == "NA" and not delTemp:
-				command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
+				command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -checkCoorthologsRef -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
+				#command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
 				print '##### Running hamstrOneSeq command: ', command
 				os.system(command)
 
@@ -467,14 +494,18 @@ def performMSA(msa, clustalw):
 			print 'WARNING: MSA didn\'t work. Less than 2 sequences found for alignment!!!'
 
 # Read OMA sequences file and parse OMA orthologs sequences
-def findOmaSequences(prot_id, omaSeqs, species_id):
+def findOmaSequences(prot_id, omaSeqs, species_id, mapFile):
 	try:
+		mapIds = []
+		for line in open(mapFile):
+			mapIds.append(line.split()[-1])
+
 		print '##### Searching OMA orthologs sequences for %s #####' %prot_id
 		fnew = open(orth_file, 'w')
 		ids = open(id_file).read().split('\n')
 		with open(omaSeqs) as f:
 			for line in f:
-				if line[0] == '>' and line.split('\n')[0][1:] in ids:
+				if line[0] == '>' and line.split('\n')[0][1:] in ids and line[1:6] in mapIds:
 					#if line.split('\n')[0][1:6] == species_id:
 						#fnew.write('>' + species_id + '\n' + f.next().replace('*', ''))
 					fnew.write('>' + line[1:6] + '\n' + f.next().replace('*', '').replace('X', ''))

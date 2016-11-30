@@ -16,13 +16,13 @@ def calculateMaxLikDist(species1, species2):
 	for j in range(len(hamstrMapFile) - 1):
 		if species1 == hamstrMapFile[j].split('\t')[1]:
 			#hamstr1 = hamstrMapFile[j].split('\t')[0]
-			oma1 = hamstrMapFile[j].split('\t')[3]
+			oma1 = hamstrMapFile[j].split('\t')[-1]
 			break
 	for j in range(len(hamstrMapFile) - 1):
 		if species2 == hamstrMapFile[j].split('\t')[1]:
 			#hamstr2 = hamstrMapFile[j].split('\t')[0]
 			#kingdom = hamstrMapFile[j].split('\t')[-1]
-			oma2 = hamstrMapFile[j].split('\t')[3]
+			oma2 = hamstrMapFile[j].split('\t')[-1]
 			break
 	#print hamstr1, hamstr2
 	#print oma1, oma2
@@ -42,6 +42,7 @@ def calculateMaxLikDist(species1, species2):
 			flag2 = False
 
 	if flag1 or flag2:
+		#print 'Checkpoint 2 crossed'
 		# Checking for the likelihood score in cache directory
 		if os.path.exists(cacheDir + '/' + oma1 + '_' + oma2 + '.lik'):
 			return float(open(cacheDir + '/' + oma1 + '_' + oma2 + '.lik').read().split('\n')[0])
@@ -51,7 +52,11 @@ def calculateMaxLikDist(species1, species2):
 			print 'No likelihood distance found between species: %s and %s. Using default likelihood distance of 1.0!' %(species1, species2)
 			return 1.00		
 	else:
-		return float(speciesMaxFile[rowIndex].split(sep)[columnIndex])
+		if not speciesMaxFile[rowIndex].split(sep)[columnIndex] == "NA":
+			return float(speciesMaxFile[rowIndex].split(sep)[columnIndex])
+		else:
+			print 'No likelihood distance found between species: %s and %s. Using default likelihood distance of 1.0!' %(species1, species2)
+			return 1.00
 
 def colourize(speciesName, nexusTreeFile):
 	tree = open(nexusTreeFile).read().split('\n')
@@ -143,7 +148,7 @@ def main(nexusTreeFile, mapFile, protId, spTree, plotFigTree, speciesMaxLikFile,
 	if os.path.exists(nexusTreeFile):
 	#speciesId = nexusTreeFile.split('_')[1].split('.')[0][:5]
 		for i in range(len(hamstrMapFile) - 1):
-			if speciesId == hamstrMapFile[i].split('\t')[3]:
+			if speciesId == hamstrMapFile[i].split('\t')[-1]:
 				speciesName = hamstrMapFile[i].split('\t')[1]
 				break
 
@@ -157,7 +162,7 @@ def main(nexusTreeFile, mapFile, protId, spTree, plotFigTree, speciesMaxLikFile,
 
 	### Calculating traceabilities for all species in the input species maximum likelihood distances file
 	'''for i in range(len(hamstrMapFile) - 1):
-		if speciesId == hamstrMapFile[i].split('\t')[3]:
+		if speciesId == hamstrMapFile[i].split('\t')[-1]:
 			speciesName = hamstrMapFile[i].split('\t')[1]
 			break
 	for line in open(sp_max_file):

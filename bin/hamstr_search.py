@@ -38,8 +38,8 @@ def copy_edit_core_ortholog():
 			sequence = s1[i+1].replace('*', '').replace('X', '')
 			s2 = open(hamstr_map_oma).read().split('\n')
 			for j in range(len(s2)-1):
-				if s2[j].split()[3] == s1[i][1:6]:
-					hamstrProtId = s2[j].split('\t')[0]
+				if s2[j].split()[-1] == s1[i][1:6]:
+					hamstrProtId = s2[j].split()[0]
 					blastDir = hamstr + '/blast_dir'
 					for dirs in glob.glob(blastDir + '/*'):
 						if hamstrProtId in dirs:
@@ -106,7 +106,7 @@ def hamstr_run():
 	for dirs in glob.glob(hamstr + '/genome_dir/*'):
 		#print dirs
 		if not ".fa" in dirs and not ".sql" in dirs:
-			hamstr_name = dirs.split('/')[-1].split('_')[0] + '_' + dirs.split('/')[-1].split('_')[1].split('@')[0]
+			hamstr_name = dirs.split('/')[-1]
 			if hamstr_name in species_in_tree:
 				file_name = dirs + '/' + dirs.split('/')[-1] + '.fa'
 				command = '%s/bin/hamstr.pl -central -sequence_file=%s -taxon=misc -hmmset=%s -strict -checkCoorthologsRef -representative -outpath=%s -hit_limit=10' %(hamstr, file_name, protein_id, output)
@@ -148,14 +148,14 @@ def write_output():
 			#print 'Writing file: ', files
 			s2 = open(files).read().split('\n')
 
-			hamstr_name = files.split('/')[-1].split('_')[1] + '_' + files.split('/')[-1].split('_')[2].split('@')[0]
+			hamstr_name = '_'.join(files.split('/')[-1].split('.out')[0].split('_')[1:])
 			s3 = open(hamstr_map_oma).read().split('\n')
 			
 			oma_name = ''
 			for j in range(len(s3)-1):
 				if s3[j].split()[0] == hamstr_name:
 					#oma_name = s3[j].split()[3] + s2[0].split('|')[3][:5]
-					oma_name = s3[j].split()[3]
+					oma_name = s3[j].split()[-1]
 					break
 			#print oma_name[:5]
 			if not oma_name[:5] in co and hamstr_name in present_species:
@@ -172,7 +172,7 @@ def finalEditOrthologsSeqs():
 	species_in_tree = []
 	s2 = open(hamstr_map_oma).read().split('\n')
 	for i in range(len(s2) - 1):
-		species_in_tree.append(s2[i].split('\t')[3])
+		species_in_tree.append(s2[i].split('\t')[-1])
 
 	for i in range(0, len(s1) - 2, 2):
 		if s1[i][0] == '>'and s1[i][1:6] in species_in_tree:

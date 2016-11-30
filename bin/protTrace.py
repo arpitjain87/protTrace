@@ -55,11 +55,11 @@ def main(argv):
 		for ids in open(id_list):
 			print '##### Running for OMA id: %s #####' %ids.split()[0]
 			if proteinParams.preprocessing:	
-				preprocessing.Preprocessing(ids.split('\n')[0], 'None', config_file)
+				preprocessing.Preprocessing(ids.split()[0], 'None', config_file)
 			if proteinParams.traceability_calculation:
-				traceabilityCalculation.main(ids.split('\n')[0], config_file)
+				traceabilityCalculation.main(ids.split()[0], config_file)
 			if proteinParams.mapTraceabilitySpeciesTree:
-				mapToSpeciesTree.main(ids.split('\n')[0], config_file)
+				mapToSpeciesTree.main(ids.split()[0], config_file)
 	elif fasta_list != '':
 		with open(fasta_list) as fa:
 			for seqs in fa:

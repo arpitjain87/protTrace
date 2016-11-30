@@ -124,8 +124,12 @@ def scalingFactorMax():
 		hamstrFile = open(map_file).read().split('\n')
 		for i in range(len(orthMaxFile) - 1):
 			species1 = orthMaxFile[i].split('\t')[0]
+
+			###
+			### This block is needed when max likelihood matrix do not have OMA identifiers ###
+			###
 			#print species1
-			#for j in range(len(hamstrFile) - 1):
+			#for j in range(len(hamstrFile) - 1):				
 			#	if species1 == hamstrFile[j].split('\t')[3]:
 			#		hamstr1 = hamstrFile[j].split('\t')[0]
 			#		break
@@ -164,7 +168,19 @@ def scalingFactorMax():
 						#maxDistSpecies = 1.00
 						mlPresent = False
 				else:
-					maxDistSpecies = float(speciesMaxFile[rowIndex].split('\t')[columnIndex])
+					if not speciesMaxFile[rowIndex].split('\t')[columnIndex] == "NA":
+						maxDistSpecies = float(speciesMaxFile[rowIndex].split('\t')[columnIndex])
+					else:
+						# Checking for the likelihood score in cache directory
+						if os.path.exists(cacheDir + '/' + species1 + '_' + species2 + '.lik'):
+							maxDistSpecies = float(open(cacheDir + '/' + species1 + '_' + species2 + '.lik').read().split('\n')[0])
+						elif os.path.exists(cacheDir + '/' + species2 + '_' + species1 + '.lik'):
+							maxDistSpecies = float(open(cacheDir + '/' + species2 + '_' + species1 + '.lik').read().split('\n')[0])
+						else:
+							print 'No likelihood distance found between species: %s and %s. Using default likelihood distance of 1.0!' %(species1, species2)
+							#maxDistSpecies = 1.00
+							mlPresent = False
+							maxDistSpecies = 1.00
 
 				#print maxDistSpecies
 				if mlPresent and not maxDistSpecies == 0:
@@ -176,10 +192,10 @@ def scalingFactorMax():
 		sys.exit('Maximum likelihood files are invalid!')
 
 	if len(scales) >= 1:
-		scale_value = sum(scales) / len(scales)
-		return scale_value
-		#print 'Scales: ', scales
-		#return median(scales)
+		#scale_value = sum(scales) / len(scales)
+		#return scale_value
+		print 'Scales: ', scales
+		return median(scales)
 	else:
 		return sf							
 
@@ -243,7 +259,7 @@ def main(Raxml, Linsi, Clustalw, Degap, Orthologs, AaMatrix, Protein_id, Puzzle,
 		if sf > 0:
 			fnew.write(str(sf))
 		else:
-			fnew.write('1.00')
+			fnew.write(str(defScale))
 		fnew.close()
 		if delTemp:
 			rm_temp()

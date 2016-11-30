@@ -136,10 +136,18 @@ def Preprocessing(prot_id, querySeq, config_file):
 					# Read the orthologs file and limit it to just the query species id and sequence
 					ortholog_temp = open(orth_file).read().split('\n')
 					rewrite_orth_file = open(orth_file, 'w')
+					inputTaxaSet = open('inputTaxaSet_oneSeq.txt', 'w')
 					for orthLines in range(len(ortholog_temp) - 1):
 						if '>' in ortholog_temp[orthLines] and species_id in ortholog_temp[orthLines]:
 							rewrite_orth_file.write(ortholog_temp[orthLines] + '\n' + ortholog_temp[orthLines + 1])
-							break
+						elif '>' in ortholog_temp[orthLines] and not species_id in ortholog_temp[orthLines]:
+							inOmaId = ortholog_temp[orthLines].split()[0][1:]
+							for mapLine in open(prot_config.hamstr_oma_tree_map):
+								if inOmaId in mapLine:
+									inputTaxaSet.write(mapLine.split()[0] + '\n')
+									break
+
+					inputTaxaSet.close()
 					rewrite_orth_file.close()
 					run_hamstrOneSeq(prot_config.hamstr, os.path.abspath(orth_file), prot_config.hamstr_oma_tree_map, prot_id, prot_config.formatdb, prot_config.blastp, proteome_file, delTemp)
 					print '#####\tTIME TAKEN: %s mins\tHaMStR-OneSeq#####' %((time.time() - startProcessTime) / 60)
@@ -259,12 +267,12 @@ def run_hamstrOneSeq(hamstr, orth_file, map_file, prot_id, formatdb, blastp, pro
 				protSeq = line.split('\n')[0]
 		
 		for line in open(map_file):
-			if line.split('\t')[3].split('\n')[0] == omaId:
+			if omaId in line.split()[-1]:
 				hamstrId = line.split('\t')[0]
 				break
 		print 'hamstr id: ', hamstrId
 		for taxas in glob.glob(taxaPath + '/*'):
-			if taxas.split('/')[-1].split('_')[0] + '_' + taxas.split('/')[-1].split('_')[1].split('@')[0] == hamstrId:
+			if hamstrId in taxas:
 				refSpec = taxas.split('/')[-1]
 				break
 		
@@ -272,7 +280,7 @@ def run_hamstrOneSeq(hamstr, orth_file, map_file, prot_id, formatdb, blastp, pro
 			print 'Searching for the seqId..'
 			flag = True
 			for line in f:
-				if f.next().split('\n')[0].replace('*', '') == protSeq.replace('*', ''):
+				if f.next().split('\n')[0].replace('*', '').replace('X', '') == protSeq.replace('*', '').replace('X', ''):
 					seqId = line.split('>')[1].split('\n')[0]
 					flag = False
 					break
@@ -314,13 +322,19 @@ def run_hamstrOneSeq(hamstr, orth_file, map_file, prot_id, formatdb, blastp, pro
 		print 'SeqId: %s  ...  OmaId: %s' %(seqId, omaId)
 		try:
 			if not seqId == "NA" and delTemp:
-				command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -checkCoorthologsRef -cleanup -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
+				if os.path.exists('inputTaxaSet_oneSeq.txt'):
+					command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -checkCoorthologsRef -cleanup -coreTaxa="inputTaxaSet_oneSeq.txt" -cleanup -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
+				else:
+					command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -checkCoorthologsRef -cleanup -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
 				#command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -cleanup -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
 				print '##### Running hamstrOneSeq command: ', command
 				os.system(command)
 
 			elif not seqId == "NA" and not delTemp:
-				command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -checkCoorthologsRef -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
+				if os.path.exists('inputTaxaSet_oneSeq.txt'):
+					command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -checkCoorthologsRef -cleanup -coreTaxa="inputTaxaSet_oneSeq.txt" -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
+				else:
+					command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -checkCoorthologsRef -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
 				#command = 'perl %s -sequence_file=%s -seqid=%s -refSpec=%s -coreOrth=5 -minDist=species -maxDist=superkingdom -fasoff -local -strict -rep -seqName=%s' %(hamstrOneSeq, orth_file.split('/')[-1], seqId, refSpec, prot_id)
 				print '##### Running hamstrOneSeq command: ', command
 				os.system(command)
@@ -367,15 +381,15 @@ def run_hamstrOneSeq(hamstr, orth_file, map_file, prot_id, formatdb, blastp, pro
 			with open(extendedFile) as f:
 				for line in f:
 					if '>' in line:
-						hamstrId = line.split('|')[1].split('_')[0] + '_' + line.split('|')[1].split('_')[1].split('@')[0]
+						hamstrId = line.split('|')[1]
 						for m in open(map_file):
-							if m.split('\t')[0] == hamstrId:
-								omaId = m.split('\t')[3].split('\n')[0]
+							if hamstrId in m:
+								omaId = m.split()[-1]
 								break
 						if not omaId == "NA" and omaId not in speciesList:
 							speciesList.append(omaId)
 							#fnew.write('>' + omaId + line.split('|')[2].split('\n')[0] + '\n' + f.next().replace('*', ''))
-							fnew.write('>' + omaId + '\n' + f.next().replace('*', ''))
+							fnew.write('>' + omaId + '\n' + f.next().replace('*', '').replace('X', ''))
 		fnew.close()
 	except IOError:
 		print 'ERROR: While writing HaMStr-OneSeq results!!!'
@@ -383,6 +397,8 @@ def run_hamstrOneSeq(hamstr, orth_file, map_file, prot_id, formatdb, blastp, pro
 	if delTemp:
 		if os.path.exists(coreOrthDir + '/' + prot_id):
 			os.system('rm -Rf %s' %(coreOrthDir + '/' + prot_id))
+		if os.path.exists("inputTaxaSet_oneSeq.txt"):
+			os.system('rm inputTaxaSet_oneSeq.txt')
 
 
 # Prepares input configuration file for REvolver

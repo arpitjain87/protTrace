@@ -70,7 +70,7 @@ def Preprocessing(prot_id, querySeq, config_file):
 	# followed with the extraction of the OMA group
 	if prot_config.search_ortholog_groups:
 		startProcessTime = time.time()		
-		run = findOmaOrthologs(prot_id, querySeq, prot_config.path_oma_group, prot_config.path_oma_seqs, proteome_file, prot_config.formatdb, prot_config.blastp, delTemp)
+		run = findOmaOrthologs(prot_id, querySeq, prot_config.path_oma_group, prot_config.path_oma_seqs, proteome_file, prot_config.formatdb, prot_config.blastp, delTemp, species_id)
 		print '#####\tTIME TAKEN: %s mins\tSearch OGs#####' %((time.time() - startProcessTime) / 60)
 
 	# Search for the ortholog sequences for the respective OMA orthologs group
@@ -533,14 +533,14 @@ def findOmaSequences(prot_id, omaSeqs, species_id, mapFile):
 				
 	
 # Read OMA orthologs groups file and parses the ortholog list for input OMA id
-def findOmaOrthologs(prot_id, querySeq, omaGroup, omaSeqs, proteome_file, formatdb, blastp, delTemp):
+def findOmaOrthologs(prot_id, querySeq, omaGroup, omaSeqs, proteome_file, formatdb, blastp, delTemp, species_id):
 	try:
 		if not querySeq == 'None':
 			run = 1
 			flag = False
 			with open(omaSeqs) as f:
 				for line in f:
-					if '>' in line:
+					if '>' in line and species_id in line:
 						if f.next().split('\n')[0].replace('*', "") == querySeq.split('\n')[0].replace('*', ''):
 							prot_id_temp = line.split('\n')[0][1:]
 							oma = open(omaIdFile, 'w')

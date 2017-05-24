@@ -100,7 +100,6 @@ def decayParams(r, prot_id, decay_script):
 	os.system(command)
 		
 def run_revolver(REvolver, xml_file):
-	#print 'java -Xmx2G -Xms2G -cp "%s" revolver %s' %(REvolver, xml_file)
 	command = 'java -Xmx2G -Xms2G -cp "%s" revolver %s' %(REvolver, xml_file)
 	#print '##### REvolver calculations command: ', command
 	os.system(command)

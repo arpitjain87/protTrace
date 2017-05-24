@@ -194,7 +194,7 @@ def scalingFactorMax():
 	if len(scales) >= 1:
 		#scale_value = sum(scales) / len(scales)
 		#return scale_value
-		print 'Scales: ', scales
+		#print 'Scales: ', scales
 		return median(scales)
 	else:
 		return sf							

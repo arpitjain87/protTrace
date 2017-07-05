@@ -478,7 +478,7 @@ def calculateIndels(tree_file, trans, alnLength, iqtree24, def_indel, def_indel_
 				elif p < 0.02:
 					p = 0.02
 			else:
-				p = float(prot_config.default_indel_distribution)
+				p = float(def_indel_dist)
 		elif line.split(':')[0] == 'Parsimony score is':
 			indel = (float(line.split(':')[1].replace(' ', '')) / (alnLength * tree_lengths[0])) / 2
 	print 'Indel: ', indel

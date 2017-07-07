@@ -478,7 +478,7 @@ def calculateIndels(tree_file, trans, alnLength, iqtree24, def_indel, def_indel_
 				elif p < 0.02:
 					p = 0.02
 			else:
-				p = float(def_indel_dist)
+				p = float(prot_config.default_indel_distribution)
 		elif line.split(':')[0] == 'Parsimony score is':
 			indel = (float(line.split(':')[1].replace(' ', '')) / (alnLength * tree_lengths[0])) / 2
 	print 'Indel: ', indel
@@ -581,8 +581,12 @@ def findOmaOrthologs(prot_id, querySeq, omaGroup, omaSeqs, proteome_file, format
 				print '##### Searching for OMA ortholog group for %s #####' %prot_id
 				fnew = open(id_file, 'w')
 				written = False
+
+				if not species_id in prot_id_temp:
+					prot_id_temp = species_id + prot_id_temp
+
 				for line in open(omaGroup):
-					if not '#' in line and prot_id_temp in line:
+					if not '#' in line and prot_id_temp in line.split('\n')[0].split('\t')[2:]:
 						for ids in line.split('\n')[0].split('\t')[2:]:
 							fnew.write(ids + '\n')
 						fnew.close()
@@ -601,8 +605,12 @@ def findOmaOrthologs(prot_id, querySeq, omaGroup, omaSeqs, proteome_file, format
 			oma.close()
 			fnew = open(id_file, 'w')
 			written = False
+
+			if not species_id in prot_id:
+				prot_id = species_id + prot_id
+
 			for line in open(omaGroup):
-				if not '#' in line and prot_id in line:
+				if not '#' in line and prot_id in line.split('\n')[0].split('\t')[2:]:
 					for ids in line.split('\n')[0].split('\t')[2:]:
 						fnew.write(ids + '\n')
 					fnew.close()
